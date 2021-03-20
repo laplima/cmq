@@ -1,13 +1,13 @@
 #include "CMQI.h"
 #include <iostream>
 #include <stdexcept>
-#include <colibry/ORBManager.h>
 
 using namespace std;
 using namespace CMQ;
 
-Connection_i::Connection_i (const PortableServer::POA_ptr poa)
-	: m_poa{PortableServer::POA::_duplicate(poa)}
+Connection_i::Connection_i (const function<void()>& shutdown,
+	const PortableServer::POA_ptr poa)
+	: shutdown_{shutdown}, m_poa{PortableServer::POA::_duplicate(poa)}
 {
 }
 
@@ -38,11 +38,6 @@ Connection_i::~Connection_i ()
 	}
 
 	return Channel::_duplicate(channel);
-}
-
-void Connection_i::close()
-{
-	colibry::ORBManager::global->shutdown();
 }
 
 // ------------------------------------------------------------------

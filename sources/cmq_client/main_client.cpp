@@ -37,8 +37,8 @@ int main(int argc, char* argv[])
 
 		ORBManager om{argc,argv};
 
-		NameServer* ns = NameServer::Instance(om.orb());
-		gConnection = ns->resolven<Connection>(SERVER_NAME);
+		NameServer ns{om};
+		gConnection = ns.resolve<Connection>(SERVER_NAME);
 
 		string cid;
 		cout << "* Enter channel id: ";

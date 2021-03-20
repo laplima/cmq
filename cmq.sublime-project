@@ -4,7 +4,8 @@
 		{
 			"name": "cmq",
 			"path": ".",
-			"folder_exclude_patterns": ["bin", "build"]
+			"folder_exclude_patterns": ["bin", "build"],
+			"file_exclude_patterns": ["*.sublime-workspace"]
 		},
 		{
 			"path": "idl",

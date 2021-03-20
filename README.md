@@ -1,5 +1,5 @@
 CORBA MESSAGE QUEUES - CMQ
-(C) 2019 by Luiz Lima Jr. All rightes reserved.
+(C) 2019-21 by Luiz Lima Jr. All rightes reserved.
 
 This is a simplified implementation of AMQP in CORBA (RabbitMQ is the standard implementation).
 See: http://www.rabbitmq.com/tutorials/amqp-concepts.html for an overview of the protocol.

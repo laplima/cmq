@@ -5,22 +5,22 @@
 #include <string>
 #include <queue>
 #include <map>
+#include <functional>
 
-#if !defined (ACE_LACKS_PRAGMA_ONCE)
-#pragma once
-#endif
 
 namespace CMQ {
 
 	// Channel Factory
 	class  Connection_i : public virtual POA_CMQ::Connection {
 	public:
-		Connection_i (const PortableServer::POA_ptr poa);
+		Connection_i (const std::function<void()>& shutdown,
+			const PortableServer::POA_ptr poa);
 		virtual ~Connection_i ();
 		virtual ::CMQ::Channel_ptr get_channel (const char * id);
-		virtual void close ();
+		virtual void close () { shutdown_(); }
 	private:
 		PortableServer::POA_var m_poa;
+		std::function<void()> shutdown_;
 	};
 
 	class  Channel_i : public virtual POA_CMQ::Channel {
