@@ -1,0 +1,34 @@
+//
+// CORBA Message Queue (CMQ)
+//
+// A simplficied implementation of the AMQP protocol.
+//
+// AMQP entities:
+//   - exchanges
+//   - queues
+//   - bindings
+//
+
+#include "CallbackAgent.idl"
+
+module CMQ {
+
+	interface Channel;
+
+	interface Connection {
+		Channel get_channel(in ID_t id);		// channel factory
+		oneway void close();					// shutdown
+	};
+
+	enum ExchangeType { DIRECT, FANOUT, TOPIC, HEADERS };
+
+	interface Channel {
+		readonly attribute ID_t id;
+		void queue_declare(in ID_t queue_id);
+		void exchange_declare(in ID_t exchange_id, in ExchangeType t);
+
+		void basic_publish(in ID_t exchange_id, in ID_t routing_key, in Message_t body);
+		void basic_consume(in CallbackAgent cb, in ID_t queue);
+	};
+
+};

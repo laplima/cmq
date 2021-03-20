@@ -1,0 +1,16 @@
+//
+// Callback Agent (to deliver message to a consumer)
+//
+
+module CMQ {
+
+	typedef any Message_t;
+	typedef string ID_t;
+
+	interface Channel;
+
+	interface CallbackAgent {
+		oneway void callback(in Channel ch, in Message_t body);
+	};
+
+};
