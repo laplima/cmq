@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.17)
 
 project(cmq)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
 set(BIN_DIR bin)
@@ -83,7 +83,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 # Subprojects
 
-add_subdirectory(sources/cmq_server)
-add_subdirectory(sources/cmq_producer)
-add_subdirectory(sources/cmq_consumer)
-add_subdirectory(sources/cmq_client)
+add_subdirectory(sources/broker)
+add_subdirectory(sources/producer)
+add_subdirectory(sources/consumer)
+add_subdirectory(sources/client)

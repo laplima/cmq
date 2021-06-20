@@ -13,11 +13,11 @@
 
 module CMQ {
 
+	typedef string ID_t;
 	interface Channel;
 
 	interface Connection {
 		Channel get_channel(in ID_t id);		// channel factory
-		oneway void close();					// shutdown
 	};
 
 	enum ExchangeType { DIRECT, FANOUT, TOPIC, HEADERS };
@@ -29,6 +29,7 @@ module CMQ {
 
 		void basic_publish(in ID_t exchange_id, in ID_t routing_key, in Message_t body);
 		void basic_consume(in CallbackAgent cb, in ID_t queue);
+		void bind(in ID_t exchange_id, in ID_t queue);
 	};
 
 };

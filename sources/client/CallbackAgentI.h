@@ -4,10 +4,6 @@
 #include "CallbackAgentS.h"
 #include <string>
 
-// #if !defined (ACE_LACKS_PRAGMA_ONCE)
-// #pragma once
-// #endif /* ACE_LACKS_PRAGMA_ONCE */
-
 namespace CMQ {
 
 	using Handler = void (*)(const std::string&);

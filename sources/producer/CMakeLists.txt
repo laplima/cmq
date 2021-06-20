@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.17)
 
-project(cmq_server)
+project(producer)
 
 set(sources
 	${STUBS}
-	${SKELETONS}
-	CMQI.cpp
-	main_server.cpp)
+	${IDL_DIR}/CallbackAgentS.cpp
+	CallbackAgentI.cpp
+	main_producer.cpp)
 
 add_executable(${PROJECT_NAME} ${sources})
 

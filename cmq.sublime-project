@@ -9,30 +9,26 @@
 		},
 		{
 			"path": "idl",
-			"file_exclude_patterns": ["*C.*", "*S.*"]
+			"file_exclude_patterns": [
+				"CallbackAgentC.*", "CallbackAgentS.*",
+				"CMQC.*", "CMQS.*"
+			]
 		},
 		{
-			"path": "sources/cmq_server"
+			"path": "sources/broker"
 		},
 		{
-			"path": "sources/cmq_client"
+			"path": "sources/client"
 		},
 		{
-			"path": "sources/cmq_producer"
+			"path": "sources/producer"
 		},
 		{
-			"path": "sources/cmq_consumer"
+			"path": "sources/consumer"
 		}
 	],
 
 	"settings" : {
-		"ecc_common_flags" : [
-			"-I${project_path}/idl",
-			"-I${COLIBRY}/include",
-			"-I${ACE_ROOT}",
-			"-I${TAO_ROOT}",
-			"-I${TAO_ROOT}/orbsvcs"
-		],
 		"SublimeLinter.linters.clang++.I": [
 			"${project_path}/idl",
 			"${COLIBRY}/include",
@@ -40,6 +36,13 @@
 			"${TAO_ROOT}",
 			"${TAO_ROOT}/orbsvcs"
 		]
-	}
+	},
+
+	"build_systems": [
+		{
+			"name" : "Make CMQ",
+			"shell_cmd": "make -C $project_path/build"
+		}
+	]
 
 }

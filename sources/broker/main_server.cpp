@@ -7,16 +7,14 @@
 #include <colibry/ORBManager.h>
 #include <colibry/NameServer.h>
 #include <colibry/TextTools.h>
-#include <signal.h>
 #include <string>
+#include <thread>
 
 using namespace std;
 using namespace colibry;
 using namespace CMQ;
 
 const char* dflt_serv_name = "cmq";
-
-ORBManager* gom = nullptr;	// not a good solution...
 
 int main(int argc, char* argv[])
 {
@@ -31,15 +29,8 @@ int main(int argc, char* argv[])
 
 		ORBManager om(argc,argv);
 		om.activate_rootpoa();
-		gom = &om;
 
-		// Create child poa
-		PortableServer::POA_var childpoa = om.create_child_poa("poachannel",
-			{ ORBManager::Policy::USER_ID, ORBManager::Policy::NO_IMPLICIT_ACTIVATION });
-
-		auto shutdown = [&om]() { om.shutdown(); };
-
-		Connection_i cmqi{shutdown, childpoa};
+		Connection_i cmqi{om};
 		Connection_var cmq = om.activate_object<Connection>(cmqi);
 
 		NameServer ns{om};
@@ -47,12 +38,14 @@ int main(int argc, char* argv[])
 
 		cout << "* Connnection registered in ths NS: \"" << connection_name << "\"" << endl;
 
-		auto termination_handler = [](int) { gom->shutdown(); cout << cursor_back(); };
-		signal(SIGINT, termination_handler);
-		signal(SIGTERM, termination_handler);
-
 		cout << "* Waiting for requests" << endl;
-		om.run();
+		thread oth{[&om]() { om.run(); }};
+		cout << "Type ENTER to quit" << endl;
+		cin.get();
+
+		ns.unbind(connection_name);
+		om.shutdown();
+		oth.join();
 
 		cout << "Terminating" << endl;
 

@@ -1,17 +1,18 @@
 #include <iostream>
 #include <string>
-#include "CallbackAgentI.h"
+#include "Callback.h"
 #include <CMQC.h>
-#include <thread>
 #include <colibry/ORBManager.h>
 #include <colibry/NameServer.h>
 #include <colibry/InteractiveShell.h>
+#include <memory>
 
 using namespace std;
 using namespace colibry;
 using namespace CMQ;
 
 const char* SERVER_NAME = "cmq";
+Connection_ptr blocking_connection(NameServer& ns, const string& name=SERVER_NAME);
 
 Connection_var gConnection = Connection::_nil();
 Channel_var gChannel = Channel::_nil();
@@ -35,22 +36,15 @@ int main(int argc, char* argv[])
 
 	try {
 
-		ORBManager om{argc,argv};
+		ORBManager orb{argc,argv};
+		NameServer ns{orb};
 
-		NameServer ns{om};
-		gConnection = ns.resolve<Connection>(SERVER_NAME);
-
-		string cid;
-		cout << "* Enter channel id: ";
-		cin >> cid;
-		cout << endl;
-		gChannel = gConnection->get_channel(cid.c_str());
+		gConnection = blocking_connection(ns);
+		gChannel = gConnection->get_channel("channel");
 
 		// set up server to receive callbacks
-		om.activate_rootpoa();
-		CallbackAgent_i cbi{handler};
-		gCallback = om.activate_object<CallbackAgent>(cbi);
-		thread mt{ [&om]() { om.run(); } };
+		Callback cb{orb, handler};
+		gCallback = CallbackAgent::_duplicate(cb.ref());
 
 		InteractiveShell* ish = InteractiveShell::Instance();
 		ish->RegisterCmds()
@@ -73,8 +67,9 @@ int main(int argc, char* argv[])
 			}
 		} while (cmd != "exit");
 
-		om.shutdown();
-		mt.join();
+		cout << "    Terminating..." << flush;
+		orb.shutdown();
+		cout << "ok" << endl;
 	} catch (CORBA::Exception& e) {
 		cerr << "CORBA exception: " << e << endl;
 		return 1;
@@ -100,18 +95,25 @@ ISHELL_FUNC(Cmd::publish,args)
 	gChannel->queue_declare(args[1].c_str());	// no effect if already created
 	Message_t m;
 	m <<= msg.c_str();
-	gChannel->basic_publish(nullptr,args[1].c_str(),m);
+	gChannel->basic_publish("", args[1].c_str(), m);
 }
 
-ISHELL_FUNC(Cmd::consume,args)
+ISHELL_FUNC(Cmd::consume, args)
 {
 	if (args.size()<2)
 		throw SyntaxError{args[0]};
 
-	gChannel->queue_declare(args[1].c_str());
-	gChannel->basic_consume(gCallback.in(),args[1].c_str());
+	const char* queue_name = args[1].c_str();
+
+	gChannel->queue_declare(queue_name);
+	gChannel->basic_consume(gCallback.in(), queue_name);
 }
 
 ISHELL_FUNC_NOARGS(Cmd::exit)
 {
+}
+
+Connection_ptr blocking_connection(NameServer& ns, const string& name)
+{
+	return ns.resolve<Connection>(name);
 }
