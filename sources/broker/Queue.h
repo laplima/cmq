@@ -8,7 +8,7 @@
 class Queue {
 public:
 	Queue() = default;
-	Queue(CMQ::Channel_ptr ch);
+	explicit Queue(CMQ::Channel_ptr ch);
 	void push(const CMQ::Message_t& m);
 	void add_callback(CMQ::CallbackAgent_ptr cb);
 protected:

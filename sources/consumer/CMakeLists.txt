@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(cmq_consumer)
+project(consumer)
 
 set(sources
 	${STUBS}
 	${IDL_DIR}/CallbackAgentS.cpp
+	CMQ.cpp
+	Callback.cpp
 	CallbackAgentI.cpp
 	main_consumer.cpp)
 

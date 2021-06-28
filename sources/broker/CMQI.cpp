@@ -13,8 +13,10 @@ using namespace colibry;
 Connection_i::Connection_i (ORBManager& om)
 {
 	// Create child poa
-	poa_ = om.create_child_poa("poachannel", { ORBManager::Policy::USER_ID,
-			  ORBManager::Policy::NO_IMPLICIT_ACTIVATION });
+	poa_ = om.create_child_poa("poachannel", {
+		ORBManager::Policy::USER_ID,
+		ORBManager::Policy::NO_IMPLICIT_ACTIVATION
+	});
 }
 
 ::CMQ::Channel_ptr Connection_i::get_channel (const char * channel_id)
@@ -99,7 +101,9 @@ void Channel_i::basic_consume (::CMQ::CallbackAgent_ptr cb, const char* queue_id
 
 void Channel_i::bind(const char* exchange_id, const char* queue_id)
 {
-
+	if (exchange_exists(exchange_id) && queue_exists(queue_id)) {
+		exmap_[exchange_id].bind(queue_id, &qmap_[queue_id]);
+	}
 }
 
 bool Channel_i::queue_exists(const string& qid) const

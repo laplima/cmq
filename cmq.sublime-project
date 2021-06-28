@@ -21,7 +21,7 @@
 			"path": "sources/client"
 		},
 		{
-			"path": "sources/producer"
+			"path": "sources/publisher"
 		},
 		{
 			"path": "sources/consumer"
@@ -40,8 +40,15 @@
 
 	"build_systems": [
 		{
-			"name" : "Make CMQ",
-			"shell_cmd": "make -C $project_path/build"
+			"name" : "CMQ",
+			"working_dir": "$project_path/build",
+			"cmd": ["make"],
+			"variants": [
+				{
+					"name": "Run Broker",
+					"shell_cmd": "make && broker"
+				}
+			]
 		}
 	]
 

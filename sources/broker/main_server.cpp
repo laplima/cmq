@@ -1,5 +1,6 @@
 //
-// (C) 2019 by Luiz Lima Jr.
+// Simplified CORBA Message Queue Broker based on AMQP (RabbitMQ)
+// (C) 2019-21 by Luiz Lima Jr.
 //
 
 #include <iostream>
@@ -11,15 +12,16 @@
 #include <thread>
 
 using namespace std;
-using namespace colibry;
+using colibry::ORBManager;
+using colibry::NameServer;
 using namespace CMQ;
 
 const char* dflt_serv_name = "cmq";
 
 int main(int argc, char* argv[])
 {
-	cout << "Simplified CORBA Message Queue Server" << endl;
-	cout << "(C) 2019-21 by Luiz Lima Jr." << endl;
+	cout << "CORBA Message Queue Broker" << endl;
+	cout << "(C)2019-21 - Luiz Lima Jr." << endl;
 
 	string connection_name{dflt_serv_name};
 	if (argv[1]!=nullptr)
@@ -27,7 +29,7 @@ int main(int argc, char* argv[])
 
 	try {
 
-		ORBManager om(argc,argv);
+		ORBManager om{argc,argv};
 		om.activate_rootpoa();
 
 		Connection_i cmqi{om};
@@ -36,22 +38,22 @@ int main(int argc, char* argv[])
 		NameServer ns{om};
 		ns.rebind(connection_name, cmq.in());
 
-		cout << "* Connnection registered in ths NS: \"" << connection_name << "\"" << endl;
+		cout << R"(* Connnection registered in ths NS: ")"
+			 << connection_name << "\"" << endl;
 
 		cout << "* Waiting for requests" << endl;
 		thread oth{[&om]() { om.run(); }};
-		cout << "Type ENTER to quit" << endl;
+		cout << "* Type ENTER to quit" << endl;
 		cin.get();
 
 		ns.unbind(connection_name);
 		om.shutdown();
 		oth.join();
 
-		cout << "Terminating" << endl;
+		cout << "* Terminating" << endl;
 
 	} catch (CORBA::Exception& e) {
 		cerr << "CORBA execption: " << e << endl;
 		return 1;
 	}
 }
-

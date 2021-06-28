@@ -13,5 +13,5 @@ Components:
 
     - `broker` implements exchanges, queues and bindings.
     - `client` plays both producer and consumer roles.
-    - `producer` (to do)
+    - `publisher` (to do)
     - `consumer` (to do)

@@ -8,7 +8,6 @@
 
 class Exchange {
 public:
-	// Exchange() : etype{CMQ::DIRECT} {}
 	Exchange(CMQ::ExchangeType t=CMQ::DIRECT) : etype{t} {}
 	void bind(const std::string& rk, Queue* q);
 	void publish(const std::string& rk, const CMQ::Message_t& m);

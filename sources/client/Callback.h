@@ -13,6 +13,7 @@ public:
 	Callback(colibry::ORBManager& om, CMQ::Handler h);
 	~Callback();
 	CMQ::CallbackAgent_ptr ref() { return cbref.in(); }
+	operator CMQ::CallbackAgent_ptr() { return ref(); }
 private:
 	colibry::ORBManager& orb;
 	CMQ::CallbackAgent_i cbi;

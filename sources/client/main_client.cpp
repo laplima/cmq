@@ -1,22 +1,23 @@
+//
+// Client is both a publisher and a consumer
+// (C) 2021 by LAPLJ. All rights reserved.
+//
+
 #include <iostream>
 #include <string>
-#include "Callback.h"
 #include <CMQC.h>
 #include <colibry/ORBManager.h>
 #include <colibry/NameServer.h>
 #include <colibry/InteractiveShell.h>
-#include <memory>
+#include "CMQ.h"
+#include "Callback.h"
 
 using namespace std;
-using namespace colibry;
-using namespace CMQ;
-
-const char* SERVER_NAME = "cmq";
-Connection_ptr blocking_connection(NameServer& ns, const string& name=SERVER_NAME);
-
-Connection_var gConnection = Connection::_nil();
-Channel_var gChannel = Channel::_nil();
-CallbackAgent_var gCallback = CallbackAgent::_nil();
+using colibry::ORBManager;
+using colibry::NameServer;
+using colibry::InteractiveShell;
+CMQ::Channel_var channel = CMQ::Channel::_nil();
+CMQ::CallbackAgent_var gCallback = CMQ::CallbackAgent::_nil();
 
 namespace Cmd {
 	DECLARE_ISHELL_FUNC(publish);
@@ -25,9 +26,8 @@ namespace Cmd {
 };
 
 // called asynchronously
-void handler(const string& msg)
-{
-	cout << "  MSG = \"" << msg << "\"" << endl;
+void handler(CMQ::Channel_ptr ch, const string &msg) {
+  cout << "  MSG = \"" << msg << "\"" << endl;
 }
 
 int main(int argc, char* argv[])
@@ -39,14 +39,14 @@ int main(int argc, char* argv[])
 		ORBManager orb{argc,argv};
 		NameServer ns{orb};
 
-		gConnection = blocking_connection(ns);
-		gChannel = gConnection->get_channel("channel");
+        CMQ::Connection_var connection = blocking_connection(ns);
+        channel = connection->get_channel("channel");
 
 		// set up server to receive callbacks
 		Callback cb{orb, handler};
-		gCallback = CallbackAgent::_duplicate(cb.ref());
+        gCallback = CMQ::CallbackAgent::_duplicate(cb.ref());
 
-		InteractiveShell* ish = InteractiveShell::Instance();
+        InteractiveShell* ish = InteractiveShell::Instance();
 		ish->RegisterCmds()
 			("publish", Cmd::publish,"publish <queue> <body>")
 			("consume",Cmd::consume,"consume <queue>")
@@ -59,10 +59,10 @@ int main(int argc, char* argv[])
 		do {
 			try {
 				cmd = ish->ReadExec("> ");
-			} catch (const EmptyLine&) {
-			} catch (const UnknownCmd& uc) {
+			} catch (const colibry::EmptyLine&) {
+			} catch (const colibry::UnknownCmd& uc) {
 				cerr << "\tUnknown command: " << uc.what() << endl;
-			} catch (const SyntaxError& s) {
+			} catch (const colibry::SyntaxError& s) {
 				cerr << "\tUsage: " << ish->Doc(s.what()) << endl;
 			}
 		} while (cmd != "exit");
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
 ISHELL_FUNC(Cmd::publish,args)
 {
 	if (args.size()<3)
-		throw SyntaxError{args[0]};
+		throw colibry::SyntaxError{args[0]};
 
 	// build message
 	string msg;
@@ -92,28 +92,23 @@ ISHELL_FUNC(Cmd::publish,args)
 		msg += " " + args[i];
 	}
 
-	gChannel->queue_declare(args[1].c_str());	// no effect if already created
-	Message_t m;
-	m <<= msg.c_str();
-	gChannel->basic_publish("", args[1].c_str(), m);
+	channel->queue_declare(args[1].c_str());	// no effect if already created
+        CMQ::Message_t m;
+        m <<= msg.c_str();
+	channel->basic_publish("", args[1].c_str(), m);
 }
 
 ISHELL_FUNC(Cmd::consume, args)
 {
 	if (args.size()<2)
-		throw SyntaxError{args[0]};
+		throw colibry::SyntaxError{args[0]};
 
 	const char* queue_name = args[1].c_str();
 
-	gChannel->queue_declare(queue_name);
-	gChannel->basic_consume(gCallback.in(), queue_name);
+	channel->queue_declare(queue_name);
+	channel->basic_consume(gCallback.in(), queue_name);
 }
 
 ISHELL_FUNC_NOARGS(Cmd::exit)
 {
-}
-
-Connection_ptr blocking_connection(NameServer& ns, const string& name)
-{
-	return ns.resolve<Connection>(name);
 }

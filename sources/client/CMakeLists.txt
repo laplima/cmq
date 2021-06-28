@@ -6,6 +6,7 @@ set(sources
 	${STUBS}
 	${IDL_DIR}/CallbackAgentS.cpp
 	CallbackAgentI.cpp
+	CMQ.cpp
 	Callback.cpp
 	main_client.cpp)
 

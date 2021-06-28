@@ -9,12 +9,16 @@ void Exchange::publish(const std::string& rk, const CMQ::Message_t& m)
 {
 	switch (etype) {
 	case CMQ::DIRECT:
+		// map
 		if (routemap.count(rk) > 0)
 			routemap[rk]->push(m);
 		else
 			throw NoRoute(rk);
 		break;
 	case CMQ::FANOUT:
+		// send to all queues, regardless the routing key
+		for (auto& [k, q] : routemap)
+			q->push(m);
 		break;
 	case CMQ::TOPIC:
 		break;

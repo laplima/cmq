@@ -27,7 +27,7 @@ void Queue::flush()
 		return;
 
 	while (!mqueue.empty()) {
-		try {			// cout << "Queue::flush() - calling back" << std::flush;
+		try {
 			(*next)->callback(channel, mqueue.front());
 			mqueue.pop();
 			++next;

@@ -1,12 +1,11 @@
 cmake_minimum_required(VERSION 3.17)
 
-project(producer)
+project(publisher)
 
 set(sources
 	${STUBS}
-	${IDL_DIR}/CallbackAgentS.cpp
-	CallbackAgentI.cpp
-	main_producer.cpp)
+	CMQ.cpp
+	main_publisher.cpp)
 
 add_executable(${PROJECT_NAME} ${sources})
 

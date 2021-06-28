@@ -84,6 +84,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 # Subprojects
 
 add_subdirectory(sources/broker)
-add_subdirectory(sources/producer)
-add_subdirectory(sources/consumer)
 add_subdirectory(sources/client)
+add_subdirectory(sources/publisher)
+add_subdirectory(sources/consumer)
