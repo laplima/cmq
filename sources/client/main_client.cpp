@@ -3,26 +3,37 @@
 // (C) 2021 by LAPLJ. All rights reserved.
 //
 
+#include <fmt/core.h>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <CMQC.h>
 #include <colibry/ORBManager.h>
 #include <colibry/NameServer.h>
-#include <colibry/InteractiveShell.h>
+#include <colibry/LineShell.h>
 #include "CMQ.h"
 #include "Callback.h"
 
 using namespace std;
 using colibry::ORBManager;
 using colibry::NameServer;
-using colibry::InteractiveShell;
+using colibry::LineShell;
+using colibry::lineshell::Stringv;
+using colibry::lineshell::PersistenceManager;
+
 CMQ::Channel_var channel = CMQ::Channel::_nil();
 CMQ::CallbackAgent_var gCallback = CMQ::CallbackAgent::_nil();
 
-namespace Cmd {
-	DECLARE_ISHELL_FUNC(publish);
-	DECLARE_ISHELL_FUNC(consume);
-	DECLARE_ISHELL_FUNC(exit);
+class MyCommands : public colibry::CmdObserver {
+public:
+	MyCommands()
+	{
+		bind()
+			("publish", FWRAP(publish))
+			("consume", FWRAP(consume));
+	}
+	void publish(const Stringv& args);
+	void consume(const Stringv& args);
 };
 
 // called asynchronously
@@ -46,26 +57,43 @@ int main(int argc, char* argv[])
 		Callback cb{orb, handler};
         gCallback = CMQ::CallbackAgent::_duplicate(cb.ref());
 
-        InteractiveShell* ish = InteractiveShell::Instance();
-		ish->RegisterCmds()
-			("publish", Cmd::publish,"publish <queue> <body>")
-			("consume",Cmd::consume,"consume <queue>")
-			("exit",Cmd::exit,"exit the program");
-		ish->Help();
-		cout << endl;
+        MyCommands cmds;
+        LineShell sh{cmds};
+        PersistenceManager::load_str(sh, R"(
+        {
+        	"publish": {
+        		"desc": "publish <queue> <body>",
+        		"args": []
+        	},
+        	"consume": {
+        		"desc": "consume <queue>",
+        		"args": []
+        	}
+        }
+        )");
+  //       InteractiveShell* ish = InteractiveShell::Instance();
+		// ish->RegisterCmds()
+		// 	("publish", Cmd::publish,"publish <queue> <body>")
+		// 	("consume",Cmd::consume,"consume <queue>")
+		// 	("exit",Cmd::exit,"exit the program");
+		// ish->Help();
+		// cout << endl;
 
-		string cmd;
+        sh.set_prompt("=> ");
+        sh.cmdloop();
 
-		do {
-			try {
-				cmd = ish->ReadExec("> ");
-			} catch (const colibry::EmptyLine&) {
-			} catch (const colibry::UnknownCmd& uc) {
-				cerr << "\tUnknown command: " << uc.what() << endl;
-			} catch (const colibry::SyntaxError& s) {
-				cerr << "\tUsage: " << ish->Doc(s.what()) << endl;
-			}
-		} while (cmd != "exit");
+		// string cmd;
+
+		// do {
+		// 	try {
+		// 		cmd = ish->ReadExec("> ");
+		// 	} catch (const colibry::EmptyLine&) {
+		// 	} catch (const colibry::UnknownCmd& uc) {
+		// 		cerr << "\tUnknown command: " << uc.what() << endl;
+		// 	} catch (const colibry::SyntaxError& s) {
+		// 		cerr << "\tUsage: " << ish->Doc(s.what()) << endl;
+		// 	}
+		// } while (cmd != "exit");
 
 		cout << "    Terminating..." << flush;
 		orb.shutdown();
@@ -76,10 +104,10 @@ int main(int argc, char* argv[])
 	}
 }
 
-ISHELL_FUNC(Cmd::publish,args)
+void MyCommands::publish(const Stringv& args)
 {
 	if (args.size()<3)
-		throw colibry::SyntaxError{args[0]};
+		throw runtime_error{args[0]};
 
 	// build message
 	string msg;
@@ -98,17 +126,13 @@ ISHELL_FUNC(Cmd::publish,args)
 	channel->basic_publish("", args[1].c_str(), m);
 }
 
-ISHELL_FUNC(Cmd::consume, args)
+void MyCommands::consume(const Stringv& args)
 {
 	if (args.size()<2)
-		throw colibry::SyntaxError{args[0]};
+		throw runtime_error{args[0]};
 
 	const char* queue_name = args[1].c_str();
 
 	channel->queue_declare(queue_name);
 	channel->basic_consume(gCallback.in(), queue_name);
-}
-
-ISHELL_FUNC_NOARGS(Cmd::exit)
-{
 }

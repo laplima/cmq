@@ -14,8 +14,8 @@ Connection_i::Connection_i (ORBManager& om)
 {
 	// Create child poa
 	poa_ = om.create_child_poa("poachannel", {
-		ORBManager::Policy::USER_ID,
-		ORBManager::Policy::NO_IMPLICIT_ACTIVATION
+		POAPolicy::USER_ID,
+		POAPolicy::NO_IMPLICIT_ACTIVATION
 	});
 }
 

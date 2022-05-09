@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.17)
 
 project(cmq)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Release)
 
 set(BIN_DIR bin)
@@ -21,7 +21,7 @@ set(libs
 	TAO_CosNaming
 	TAO_IORTable
 	colibry_static
-	readline)
+	fmt)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(libs ${libs} pthread)
