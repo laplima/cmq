@@ -1,4 +1,5 @@
 #include "CMQI.h"
+#include "CMQC.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -24,7 +25,7 @@ Connection_i::Connection_i (ORBManager& om)
 	// channel factory
 	PortableServer::ObjectId_var oid = PortableServer::string_to_ObjectId(channel_id);
 
-	Channel_ptr channel;
+	Channel_ptr channel = Channel::_nil();
 
 	try {
 		// tries to find channel in the Active Object Map of poa_
