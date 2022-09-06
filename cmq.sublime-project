@@ -28,16 +28,6 @@
 		}
 	],
 
-	"settings" : {
-		"SublimeLinter.linters.clang++.I": [
-			"${project_path}/idl",
-			"${COLIBRY}/include",
-			"${ACE_ROOT}",
-			"${TAO_ROOT}",
-			"${TAO_ROOT}/orbsvcs"
-		]
-	},
-
 	"build_systems": [
 		{
 			"name" : "CMQ",
