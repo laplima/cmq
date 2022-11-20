@@ -52,7 +52,7 @@ Channel_i::Channel_i (const std::string& id)
 {
 	// create default exchange
 	exmap_.emplace("", CMQ::DIRECT);
-	cout << "    Default echange \"\" created" << endl;
+	cout << "    Default exchange \"\" created" << endl;
 }
 
 void Channel_i::set_auto_ref(Channel_ptr ref)
