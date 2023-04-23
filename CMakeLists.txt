@@ -1,18 +1,28 @@
-cmake_minimum_required(VERSION 3.17)
+# ACETAO CMake
+# (C) 2023 Luiz Lima Jr. All rights reserved.
+
+cmake_minimum_required(VERSION 3.20)
 
 project(cmq)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_BUILD_TYPE Release)
-
-set(BIN_DIR bin)
-
-set(IDL CMQ CallbackAgent)
+set(IDL CMQ.idl CallbackAgent.idl)
 set(IDL_DIR idl)
 
-# MYLIBS
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_BUILD_TYPE Debug)
 
-set(MYLIBS)
+set(SRC_DIR "sources")
+set(SUBPROJECTS
+	broker
+	client
+	consumer
+	publisher)
+
+# pkg-config
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FMT REQUIRED fmt)
+
+# Generate ${mylibs}
 
 set(libs
 	ACE TAO
@@ -20,70 +30,70 @@ set(libs
 	TAO_AnyTypeCode
 	TAO_CosNaming
 	TAO_IORTable
-	colibry_static
-	fmt)
+	colibry_static)
 
+# Platform-dependent additional libraries
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	set(libs ${libs} pthread)
+	set(libs ${libs} )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(libs ${libs} )
 endif()
 
-foreach(lib ${libs})
-	set(the_lib ${lib}-NOTFOUND)
-	find_library(the_lib ${lib} PATHS "$ENV{ACE_ROOT}/lib" "$ENV{COLIBRY}/lib")
-	set(MYLIBS ${MYLIBS} ${the_lib})
-endforeach(lib)
+set(mylibs)
+foreach(lib_ ${libs})
+	set(alib_ ${lib}-NOTFOUND)
+	find_library(alib_ ${lib_} PATHS
+		"$ENV{ACE_ROOT}/lib" "$ENV{COLIBRY}/lib" "/opt/local/lib")
+	set(mylibs ${mylibs} ${alib_})
+endforeach(lib_)
 
 # IDL
 
 set(IDL_DIR "${PROJECT_SOURCE_DIR}/${IDL_DIR}")
+set(STUBS_DIR ${CMAKE_CURRENT_BINARY_DIR})		# stubs in the build dir
 
-set(IDL_FILES)
 set(IDL_IMPL)
 set(IDL_OUTPUT)
 set(SKELETONS)
 set(STUBS)
 foreach(idl ${IDL})
-	set(SKELETONS ${SKELETONS} ${IDL_DIR}/${idl}S.cpp)
-	set(STUBS ${STUBS} ${IDL_DIR}/${idl}C.cpp)
+	get_filename_component(idl ${idl} NAME_WE)
+	set(SKELETONS ${SKELETONS}
+		${STUBS_DIR}/${idl}S.cpp
+		${STUBS_DIR}/${idl}C.cpp)
+	set(STUBS ${STUBS}
+		${STUBS_DIR}/${idl}C.cpp)
 	set(IDL_OUTPUT ${IDL_OUTPUT}
-		${IDL_DIR}/${idl}C.h ${IDL_DIR}/${idl}C.inl ${IDL_DIR}/${idl}S.h)
-	set(IDL_FILES ${IDL_FILES} ${IDL_DIR}/${idl}.idl)
+		${STUBS_DIR}/${idl}C.h
+		${STUBS_DIR}/${idl}C.inl
+		${STUBS_DIR}/${idl}S.h)
 	set(IDL_IMPL ${IDL_IMPL} ${idl}I.cpp)
 endforeach(idl)
-set(IDL_OUTPUT ${STUBS} ${SKELETONS} ${IDL_OUTPUT})
-
-add_custom_command(
-	OUTPUT ${IDL_OUTPUT}
-	DEPENDS ${IDL_FILES}
-	COMMAND tao_idl ${IDL_FILES}
-	WORKING_DIRECTORY ${IDL_DIR}
-	COMMENT "Generating stubs + skeletons"
-	VERBATIM)
-
-add_custom_command(
-	OUTPUT ${IDL_OUTPUT}
-	DEPENDS ${IDL_FILES}
-	COMMAND tao_idl ${IDL_FILES}
-	WORKING_DIRECTORY ${IDL_DIR}
-	COMMENT "Generating stubs + skeletons"
-	VERBATIM)
+set(IDL_OUTPUT ${IDL_OUTPUT} ${SKELETONS})
 
 # INCLUDES
 
 include_directories(
-    "${IDL_DIR}"
-    "$ENV{COLIBRY}/include"
+    "${STUBS_DIR}"
     "$ENV{ACE_ROOT}"
     "$ENV{TAO_ROOT}"
-    "$ENV{TAO_ROOT}/orbsvcs")
+    "$ENV{TAO_ROOT}/orbsvcs"
+    "$ENV{COLIBRY}/include"
+    ${FMT_INCLUDE_DIRS})
 
-add_compile_options(-Wno-deprecated-declarations -fdelayed-template-parsing)
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${BIN_DIR}")
+# PLATFORM-DEPENDENT COMPILER OPTIONS
+
+add_compile_options(-Wno-deprecated-declarations)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		add_compile_options(-fdelayed-template-parsing -m64)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		include_directories("/opt/local/include")
+endif()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(MYMODULES_DIR "${PROJECT_SOURCE_DIR}/cmake")
 
 # Subprojects
-
-add_subdirectory(sources/broker)
-add_subdirectory(sources/client)
-add_subdirectory(sources/publisher)
-add_subdirectory(sources/consumer)
+foreach(proj ${SUBPROJECTS})
+	add_subdirectory("${SRC_DIR}/${proj}")
+endforeach(proj)

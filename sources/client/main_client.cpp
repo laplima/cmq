@@ -3,7 +3,7 @@
 // (C) 2021 by LAPLJ. All rights reserved.
 //
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <iostream>
 #include <stdexcept>
 #include <string>

@@ -1,17 +1,18 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.20)
 
 project(client)
 
 set(sources
 	${STUBS}
-	${IDL_DIR}/CallbackAgentS.cpp
+	${STUBS_DIR}/CallbackAgentS.cpp
 	CallbackAgentI.cpp
 	CMQ.cpp
 	Callback.cpp
 	main_client.cpp)
 
+include("${MYMODULES_DIR}/taoidl.cmake")
+
 add_executable(${PROJECT_NAME} ${sources})
-
-target_link_libraries(${PROJECT_NAME} ${MYLIBS} -lreadline)
-
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/../bin")
+target_compile_options(${PROJECT_NAME} PUBLIC ${FMT_CFLAGS_OTHER})
+target_link_libraries(${PROJECT_NAME}
+	${mylibs} ${FMT_LIBRARIES} ${FMT_LDFLAGS})

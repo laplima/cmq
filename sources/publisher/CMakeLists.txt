@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.20)
 
-project(publisher)
+project(${PROJECT_NAME}_client)   # name of the executable
 
 set(sources
 	${STUBS}
 	CMQ.cpp
 	main_publisher.cpp)
 
+include("${MYMODULES_DIR}/taoidl.cmake")
+
 add_executable(${PROJECT_NAME} ${sources})
-
-target_link_libraries(${PROJECT_NAME} ${MYLIBS})
-
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/../bin")
+target_compile_options(${PROJECT_NAME} PUBLIC ${FMT_CFLAGS_OTHER})
+target_link_libraries(${PROJECT_NAME}
+	${mylibs} ${FMT_LIBRARIES} ${FMT_LDFLAGS})
