@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(${PROJECT_NAME}_client)   # name of the executable
+project(publisher)   # name of the executable
 
 set(sources
 	${STUBS}

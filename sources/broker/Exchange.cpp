@@ -1,5 +1,8 @@
 #include "Exchange.h"
 
+// #include <iostream>
+// using namespace std;
+
 void Exchange::bind(const std::string& rk, Queue* q)
 {
 	routemap[rk] = q;
@@ -11,7 +14,7 @@ void Exchange::publish(const std::string& rk, const CMQ::Message_t& m)
 	case CMQ::DIRECT:
 		// map
 		if (routemap.count(rk) > 0)
-			routemap[rk]->push(m);
+			routemap.at(rk)->push(m);
 		else
 			throw NoRoute(rk);
 		break;

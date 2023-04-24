@@ -10,26 +10,34 @@
 #include <colibry/TextTools.h>
 #include <string>
 #include <thread>
+#include <span>
+#include <fmt/core.h>
+#include <fmt/ostream.h>
 
 using namespace std;
 using colibry::ORBManager;
 using colibry::NameServer;
 using namespace CMQ;
 
-const char* dflt_serv_name = "cmq";
+using fmt::print;
+
+const char* const dflt_serv_name = "cmq";
 
 int main(int argc, char* argv[])
 {
-	cout << "CORBA Message Queue Broker" << endl;
-	cout << "(C)2019-21 - Luiz Lima Jr." << endl;
-
-	string connection_name{dflt_serv_name};
-	if (argv[1]!=nullptr)
-		connection_name = argv[1];
+	print("CORBA Message Queue Broker\n");
+	print("(C) 2019-23 Luiz Lima Jr.\n");
 
 	try {
 
 		ORBManager om{argc,argv};
+
+		// parse command-line
+		span args(argv, argc);
+		string connection_name{dflt_serv_name};
+		if (args.size() > 1)
+			connection_name = args[1];
+
 		om.activate_rootpoa();
 
 		Connection_i cmqi{om};
@@ -38,22 +46,22 @@ int main(int argc, char* argv[])
 		NameServer ns{om};
 		ns.rebind(connection_name, cmq.in());
 
-		cout << R"(* Connnection registered in ths NS: ")"
-			 << connection_name << "\"" << endl;
+		print(R"(* Connnection registered in ths NS: "{}"{})",
+			connection_name, "\n");
 
-		cout << "* Waiting for requests" << endl;
+		print("* Waiting for requests\n");
 		thread oth{[&om]() { om.run(); }};
-		cout << "* Type ENTER to quit" << endl;
+		print("* Hit ENTER to quit\n");
 		cin.get();
 
 		ns.unbind(connection_name);
 		om.shutdown();
 		oth.join();
 
-		cout << "* Terminating" << endl;
+		print("* Terminating\n");
 
 	} catch (CORBA::Exception& e) {
-		cerr << "CORBA execption: " << e << endl;
+		print(stderr, "CORBA execption: {}\n", fmt::streamed(e));
 		return 1;
 	}
 }

@@ -15,7 +15,7 @@ void Queue::push(const CMQ::Message_t& m)
 
 void Queue::add_callback(CMQ::CallbackAgent_ptr cb)
 {
-	callbacks.push_back(CMQ::CallbackAgent::_duplicate(cb));
+	callbacks.emplace_back(CMQ::CallbackAgent::_duplicate(cb));
 	if (next == callbacks.end())
 		next = callbacks.begin();
 	flush();
@@ -40,6 +40,10 @@ void Queue::flush()
 			if (next == callbacks.end())
 				next = callbacks.begin();
 			callbacks.erase(rem);
+			if (callbacks.empty()) {
+				next = callbacks.end();
+				return;
+			}
 		}
 	}
 }

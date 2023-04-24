@@ -1,11 +1,16 @@
 #include "CMQI.h"
 #include "CMQC.h"
-#include <iostream>
+#include "tao/Exception.h"
+#include <fmt/core.h>
+#include <fmt/ostream.h>
 #include <stdexcept>
 
 using namespace std;
 using namespace CMQ;
 using namespace colibry;
+
+using fmt::print;
+using fmt::streamed;
 
 // -----------------------------------------------------------------------------
 // CONNECTION
@@ -33,11 +38,11 @@ Connection_i::Connection_i (ORBManager& om)
 		channel = Channel::_narrow(tmp_ref);
 	} catch (PortableServer::POA::ObjectNotActive&) {
 		// channel not found - create a new one
-		Channel_i *c = new Channel_i(channel_id);
+		auto *c = new Channel_i(channel_id);
 		poa_->activate_object_with_id(oid.in(),c);
 		CORBA::Object_ptr tmp_ref = poa_->id_to_reference(oid.in());
 		channel = Channel::_narrow(tmp_ref);
-		cout << "   New channel \"" << channel_id << "\" created" << endl;
+		print("    New channel \"{}\" created\n", channel_id);
 		c->set_auto_ref(channel);
 	}
 	return Channel::_duplicate(channel);
@@ -52,7 +57,7 @@ Channel_i::Channel_i (const std::string& id)
 {
 	// create default exchange
 	exmap_.emplace("", CMQ::DIRECT);
-	cout << "    Default exchange \"\" created" << endl;
+	print("    Default exchange \"\" created\n");
 }
 
 void Channel_i::set_auto_ref(Channel_ptr ref)
@@ -63,7 +68,7 @@ void Channel_i::set_auto_ref(Channel_ptr ref)
 void Channel_i::queue_declare(const char *qid)
 {
 	if (qmap_.count(qid) == 0) {
-		cout << "     New queue \"" << qid << "\" created." << endl;
+		print("    New queue \"{}\" created.\n", qid);
 		qmap_.emplace(qid,ref_.in());
 		exmap_[""].bind(qid, &qmap_[qid]); // bind to default exchange
 	}
@@ -82,22 +87,24 @@ void Channel_i::basic_publish (const char *exchange_id,
 {
 	if (exchange_exists(exchange_id)) {
 		try {
-			exmap_[exchange_id].publish(routing_key, msg);
+			exmap_.at(exchange_id).publish(routing_key, msg);
 		} catch (const Exchange::NoRoute& e) {
-			cerr << "No route to " << routing_key << endl;
+			print(stderr, "No route to {}\n", routing_key);
+		} catch (const CORBA::Exception& e) {
+			print(stderr, "CORBA connection to {} is lost\n", routing_key);
 		}
 	}
 	else
-		cerr << "ERROR: No exchange named " << exchange_id << endl;
+		print(stderr, "ERROR: No exchange called \"{}\"\n", exchange_id);
 }
 
 void Channel_i::basic_consume (::CMQ::CallbackAgent_ptr cb, const char* queue_id)
 {
 	if (queue_exists(queue_id)) {
 		qmap_[queue_id].add_callback(cb);
-		cout << "\tNew callback registered for queue " << queue_id << endl;
+		print("    New callback registered for queue \"{}\"\n", queue_id);
 	} else
-		cerr << "Invalid queue: \"" << queue_id << "\"" << endl;
+		print(stderr, "Invalid queue: \"{}\"\n", queue_id);
 }
 
 void Channel_i::bind(const char* exchange_id, const char* queue_id)

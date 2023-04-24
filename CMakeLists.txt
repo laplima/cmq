@@ -50,7 +50,8 @@ endforeach(lib_)
 # IDL
 
 set(IDL_DIR "${PROJECT_SOURCE_DIR}/${IDL_DIR}")
-set(STUBS_DIR ${CMAKE_CURRENT_BINARY_DIR})		# stubs in the build dir
+set(STUBS_DIR "${CMAKE_CURRENT_BINARY_DIR}/stubs")		# stubs in the build dir
+file(MAKE_DIRECTORY "${STUBS_DIR}")
 
 set(IDL_IMPL)
 set(IDL_OUTPUT)

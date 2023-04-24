@@ -24,7 +24,7 @@ namespace CMQ {
 
 	class  Channel_i : public virtual POA_CMQ::Channel {
 	public:
-		Channel_i (const std::string& id);
+		explicit Channel_i (const std::string& id);
 
 		// IDL
 		char * id (void) override { return CORBA::string_dup(id_.c_str()); }
@@ -38,8 +38,8 @@ namespace CMQ {
 	public:
 		virtual void set_auto_ref(Channel_ptr ref);
 	protected:
-		bool queue_exists(const std::string& qid) const;
-		bool exchange_exists(const std::string& exid) const;
+		[[nodiscard]] bool queue_exists(const std::string& qid) const;
+		[[nodiscard]] bool exchange_exists(const std::string& exid) const;
 	protected:
 		std::string id_;
 		std::map<std::string,Queue> qmap_;		// queues: queue_name => Queue
@@ -49,4 +49,4 @@ namespace CMQ {
 
 };
 
-#endif /* CMQI_H_  */
+#endif

@@ -60,40 +60,24 @@ int main(int argc, char* argv[])
         MyCommands cmds;
         LineShell sh{cmds};
         PersistenceManager::load_str(sh, R"(
-        {
-        	"publish": {
-        		"desc": "publish <queue> <body>",
-        		"args": []
+        [
+        	{
+        		"publish": {
+        			"desc": "publish <queue> <body>",
+        			"args": []
+        		}
         	},
-        	"consume": {
-        		"desc": "consume <queue>",
-        		"args": []
-        	}
-        }
+        	{
+	        	"consume": {
+	        		"desc": "consume <queue>",
+	        		"args": []
+	        	}
+	        }
+        ]
         )");
-  //       InteractiveShell* ish = InteractiveShell::Instance();
-		// ish->RegisterCmds()
-		// 	("publish", Cmd::publish,"publish <queue> <body>")
-		// 	("consume",Cmd::consume,"consume <queue>")
-		// 	("exit",Cmd::exit,"exit the program");
-		// ish->Help();
-		// cout << endl;
 
         sh.set_prompt("=> ");
         sh.cmdloop();
-
-		// string cmd;
-
-		// do {
-		// 	try {
-		// 		cmd = ish->ReadExec("> ");
-		// 	} catch (const colibry::EmptyLine&) {
-		// 	} catch (const colibry::UnknownCmd& uc) {
-		// 		cerr << "\tUnknown command: " << uc.what() << endl;
-		// 	} catch (const colibry::SyntaxError& s) {
-		// 		cerr << "\tUsage: " << ish->Doc(s.what()) << endl;
-		// 	}
-		// } while (cmd != "exit");
 
 		cout << "    Terminating..." << flush;
 		orb.shutdown();

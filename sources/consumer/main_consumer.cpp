@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <span>
 #include "CMQ.h"
 #include "Callback.h"
 #include <colibry/ORBManager.h>
@@ -16,18 +17,19 @@ void handler(CMQ::Channel_ptr ch, const string& msg)
 
 int main(int argc, char* argv[])
 {
-	cout << "CMQ CONSUMER" << endl;
-
-	if (argc < 2) {
-		cerr << "USAGE: " << argv[0] << " <queue>" << endl;
-		return 1;
-	}
-
-	const char* qname = argv[1];
+	cout << "CMQ Consumer" << endl;
 
 	try {
 
 		ORBManager om{argc,argv};
+
+		span args(argv, argc);
+		if (args.size() < 2) {
+			cerr << "USAGE: " << args[0] << " <queue>" << endl;
+			return 1;
+		}
+		const char* qname = args[1];
+
 		NameServer ns{om};
 
 		Connection_var connection = blocking_connection(ns);
