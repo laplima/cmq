@@ -19,8 +19,7 @@ set(SUBPROJECTS
 	publisher)
 
 # pkg-config
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FMT REQUIRED fmt)
+find_package(fmt REQUIRED)
 
 # Generate ${mylibs}
 

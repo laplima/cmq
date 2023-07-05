@@ -19,7 +19,8 @@ using fmt::streamed;
 Connection_i::Connection_i (ORBManager& om)
 {
 	// Create child poa
-	poa_ = om.create_child_poa("poachannel", {
+	auto rpoa = om.rootpoa();
+	poa_ = rpoa.create_child_poa("poachannel", {
 		POAPolicy::USER_ID,
 		POAPolicy::NO_IMPLICIT_ACTIVATION
 	});
@@ -28,23 +29,16 @@ Connection_i::Connection_i (ORBManager& om)
 ::CMQ::Channel_ptr Connection_i::get_channel (const char * channel_id)
 {
 	// channel factory
-	PortableServer::ObjectId_var oid = PortableServer::string_to_ObjectId(channel_id);
 
-	Channel_ptr channel = Channel::_nil();
-
-	try {
-		// tries to find channel in the Active Object Map of poa_
-		CORBA::Object_ptr tmp_ref = poa_->id_to_reference(oid.in());
-		channel = Channel::_narrow(tmp_ref);
-	} catch (PortableServer::POA::ObjectNotActive&) {
-		// channel not found - create a new one
+	Channel_ptr channel = poa_.get_reference<Channel>(channel_id);
+	if (CORBA::is_nil(channel)) {
+		// create a new channel
 		auto *c = new Channel_i(channel_id);
-		poa_->activate_object_with_id(oid.in(),c);
-		CORBA::Object_ptr tmp_ref = poa_->id_to_reference(oid.in());
-		channel = Channel::_narrow(tmp_ref);
+		channel = poa_.activate_object_with_id<Channel>(channel_id,*c);
 		print("    New channel \"{}\" created\n", channel_id);
 		c->set_auto_ref(channel);
 	}
+
 	return Channel::_duplicate(channel);
 }
 
@@ -52,8 +46,8 @@ Connection_i::Connection_i (ORBManager& om)
 // CHANNEL
 // ------------------------------------------------------------------
 
-Channel_i::Channel_i (const std::string& id)
-	: id_{id}, ref_{CMQ::Channel::_nil()}
+Channel_i::Channel_i (std::string id)
+	: id_{std::move(id)}, ref_{CMQ::Channel::_nil()}
 {
 	// create default exchange
 	exmap_.emplace("", CMQ::DIRECT);
