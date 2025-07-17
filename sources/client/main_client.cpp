@@ -3,8 +3,8 @@
 // (C) 2021 by LAPLJ. All rights reserved.
 //
 
-#include <fmt/format.h>
 #include <iostream>
+#include <print>
 #include <stdexcept>
 #include <string>
 #include <CMQC.h>
@@ -24,8 +24,12 @@ using colibry::lineshell::PersistenceManager;
 CMQ::Channel_var channel = CMQ::Channel::_nil();
 CMQ::CallbackAgent_var gCallback = CMQ::CallbackAgent::_nil();
 
+template<typename T>
+string streamed(const T& t) { std::ostringstream ss; ss << t; return ss.str(); }
+
 class MyCommands : public colibry::CmdObserver {
 public:
+	virtual ~MyCommands() = default;
 	MyCommands()
 	{
 		bind()
@@ -38,7 +42,7 @@ public:
 
 // called asynchronously
 void handler(CMQ::Channel_ptr ch, const string &msg) {
-  cout << "  MSG = \"" << msg << "\"" << endl;
+	cout << "  MSG = \"" << msg << "\"" << endl;
 }
 
 int main(int argc, char* argv[])
@@ -50,40 +54,40 @@ int main(int argc, char* argv[])
 		ORBManager orb{argc,argv};
 		NameServer ns{orb};
 
-        CMQ::Connection_var connection = blocking_connection(ns);
-        channel = connection->get_channel("channel");
+		CMQ::Connection_var connection = blocking_connection(ns);
+		channel = connection->get_channel("channel");
 
 		// set up server to receive callbacks
 		Callback cb{orb, handler};
-        gCallback = CMQ::CallbackAgent::_duplicate(cb.ref());
+		gCallback = CMQ::CallbackAgent::_duplicate(cb.ref());
 
-        MyCommands cmds;
-        LineShell sh{cmds};
-        PersistenceManager::load_str(sh, R"(
-        [
-        	{
-        		"publish": {
-        			"desc": "publish <queue> <body>",
-        			"args": []
-        		}
-        	},
-        	{
-	        	"consume": {
-	        		"desc": "consume <queue>",
-	        		"args": []
-	        	}
-	        }
-        ]
-        )");
+		MyCommands cmds;
+		LineShell sh{cmds};
+		PersistenceManager::load_str(sh, R"(
+		[
+			{
+				"publish": {
+					"desc": "publish <queue> <body>",
+					"args": []
+				}
+			},
+			{
+				"consume": {
+					"desc": "consume <queue>",
+					"args": []
+				}
+			}
+		]
+		)");
 
-        sh.set_prompt("=> ");
-        sh.cmdloop();
+		sh.set_prompt("=> ");
+		sh.cmdloop();
 
-		cout << "    Terminating..." << flush;
+		print("    Terminating...");
 		orb.shutdown();
-		cout << "ok" << endl;
+		println("ok");
 	} catch (CORBA::Exception& e) {
-		cerr << "CORBA exception: " << e << endl;
+		println(stderr,"CORBA exception: {}", streamed(e));
 		return 1;
 	}
 }
@@ -105,8 +109,8 @@ void MyCommands::publish(const Stringv& args)
 	}
 
 	channel->queue_declare(args[1].c_str());	// no effect if already created
-        CMQ::Message_t m;
-        m <<= msg.c_str();
+		CMQ::Message_t m;
+		m <<= msg.c_str();
 	channel->basic_publish("", args[1].c_str(), m);
 }
 

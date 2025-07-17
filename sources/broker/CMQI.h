@@ -43,7 +43,7 @@ namespace CMQ {
 		std::string id_;
 		std::map<std::string,Queue> qmap_;		// queues: queue_name => Queue
 		std::map<std::string,Exchange> exmap_;	// exchanges: exchange_name => Exchange
-		Channel_var ref_;
+		Channel_var ref_ = CMQ::Channel::_nil();
 	};
 
 };

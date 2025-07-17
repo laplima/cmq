@@ -5,7 +5,8 @@
 			"name": "cmq",
 			"path": ".",
 			"folder_exclude_patterns": ["bin", "build"],
-			"file_exclude_patterns": ["*.sublime-workspace"]
+			"file_exclude_patterns": ["*.sublime-workspace",
+				"compile_commands.json"]
 		},
 		{
 			"path": "idl",

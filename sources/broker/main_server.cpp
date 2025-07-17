@@ -10,23 +10,24 @@
 #include <colibry/TextTools.h>
 #include <string>
 #include <thread>
+#include <sstream>
 #include <span>
-#include <fmt/core.h>
-#include <fmt/ostream.h>
+#include <print>
 
 using namespace std;
 using colibry::ORBManager;
 using colibry::NameServer;
 using namespace CMQ;
 
-using fmt::print;
-
 const char* const dflt_serv_name = "cmq";
+
+template<typename T>
+string streamed(const T& t) { std::ostringstream ss; ss << t; return ss.str(); }
 
 int main(int argc, char* argv[])
 {
 	print("CORBA Message Queue Broker\n");
-	print("(C) 2019-23 Luiz Lima Jr.\n");
+	print("(C) 2019-25 Luiz Lima Jr.\n");
 
 	try {
 
@@ -46,8 +47,7 @@ int main(int argc, char* argv[])
 		NameServer ns{om};
 		ns.rebind(connection_name, cmq.in());
 
-		print(R"(* Connnection registered in ths NS: "{}"{})",
-			connection_name, "\n");
+		println(R"(* Connnection registered in ths NS: "{}")", connection_name);
 
 		print("* Waiting for requests\n");
 		thread oth{[&om]() { om.run(); }};
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 		print("* Terminating\n");
 
 	} catch (CORBA::Exception& e) {
-		print(stderr, "CORBA execption: {}\n", fmt::streamed(e));
+		println("CORBA execption: {}", streamed(e));
 		return 1;
 	}
 }

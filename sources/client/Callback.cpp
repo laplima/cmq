@@ -1,4 +1,5 @@
 #include "Callback.h"
+#include <print>
 #include <iostream>
 
 using namespace std;
@@ -12,7 +13,8 @@ Callback::Callback(colibry::ORBManager& om, CMQ::Handler h) : orb{om}, cbi{h}
 
 Callback::~Callback()
 {
-	cout << "    Wating for orb thread..." << flush;
+	print("    Wating for orb thread...");
+	cout << flush;
 	orbt.join();
-	cout << "ok" << endl;
+	println("ok");
 }

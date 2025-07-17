@@ -8,7 +8,7 @@ project(cmq)
 set(IDL CMQ.idl CallbackAgent.idl)
 set(IDL_DIR idl)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_BUILD_TYPE Debug)
 
 set(SRC_DIR "sources")
@@ -19,7 +19,7 @@ set(SUBPROJECTS
 	publisher)
 
 # pkg-config
-find_package(fmt REQUIRED)
+# find_package(fmt REQUIRED)
 
 # Generate ${mylibs}
 
@@ -85,7 +85,7 @@ include_directories(
 
 add_compile_options(-Wno-deprecated-declarations)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		add_compile_options(-fdelayed-template-parsing -m64)
+		add_compile_options()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		include_directories("/opt/local/include")
 endif()

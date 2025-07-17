@@ -1,16 +1,12 @@
 #include "CMQI.h"
 #include "CMQC.h"
 #include "tao/Exception.h"
-#include <fmt/core.h>
-#include <fmt/ostream.h>
+#include <print>
 #include <stdexcept>
 
 using namespace std;
 using namespace CMQ;
 using namespace colibry;
-
-using fmt::print;
-using fmt::streamed;
 
 // -----------------------------------------------------------------------------
 // CONNECTION
@@ -19,27 +15,25 @@ using fmt::streamed;
 Connection_i::Connection_i (ORBManager& om)
 {
 	// Create child poa
-	auto rpoa = om.rootpoa();
+	auto& rpoa = om.rootpoa();
 	poa_ = rpoa.create_child_poa("poachannel", {
 		POAPolicy::USER_ID,
 		POAPolicy::NO_IMPLICIT_ACTIVATION
 	});
 }
 
-::CMQ::Channel_ptr Connection_i::get_channel (const char * channel_id)
+::CMQ::Channel_ptr Connection_i::get_channel (const char* channel_id)
 {
 	// channel factory
-
-	Channel_ptr channel = poa_.get_reference<Channel>(channel_id);
+	Channel_var channel = poa_.get_reference<Channel>(channel_id); // do not use Channel_ptr!
 	if (CORBA::is_nil(channel)) {
 		// create a new channel
 		auto *c = new Channel_i(channel_id);
-		channel = poa_.activate_object_with_id<Channel>(channel_id,*c);
+		channel = poa_.activate_object_with_id<Channel>(channel_id, *c);
 		print("    New channel \"{}\" created\n", channel_id);
 		c->set_auto_ref(channel);
 	}
-
-	return Channel::_duplicate(channel);
+	return Channel::_duplicate(channel.in());
 }
 
 // ------------------------------------------------------------------
@@ -47,7 +41,7 @@ Connection_i::Connection_i (ORBManager& om)
 // ------------------------------------------------------------------
 
 Channel_i::Channel_i (std::string id)
-	: id_{std::move(id)}, ref_{CMQ::Channel::_nil()}
+	: id_{std::move(id)}
 {
 	// create default exchange
 	exmap_.emplace("", CMQ::DIRECT);
@@ -103,9 +97,8 @@ void Channel_i::basic_consume (::CMQ::CallbackAgent_ptr cb, const char* queue_id
 
 void Channel_i::bind(const char* exchange_id, const char* queue_id)
 {
-	if (exchange_exists(exchange_id) && queue_exists(queue_id)) {
+	if (exchange_exists(exchange_id) && queue_exists(queue_id))
 		exmap_[exchange_id].bind(queue_id, &qmap_[queue_id]);
-	}
 }
 
 bool Channel_i::queue_exists(const string& qid) const

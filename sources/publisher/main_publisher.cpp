@@ -1,6 +1,5 @@
 #include <iostream>
-#include <fmt/core.h>
-#include <fmt/ostream.h>
+#include <print>
 #include <string>
 #include <span>
 #include <CMQC.h>
@@ -13,7 +12,8 @@ using colibry::ORBManager;
 using colibry::NameServer;
 using namespace CMQ;
 
-using fmt::print;
+template<typename T>
+string streamed(const T& t) { std::ostringstream ss; ss << t; return ss.str(); }
 
 int main(int argc, char* argv[])
 {
@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 
 		span args(argv, argc);
 		if (args.size() < 3) {
-			cerr << "USAGE: " << args[0] << " <queue> <msg1> [<msg2> ...]" << endl;
+			println(stderr,"USAGE: {} <queue> <msg1> [<msg2> ...]", args[0]);
 			return 1;
 		}
 		const char* qname = args[1];
@@ -45,10 +45,10 @@ int main(int argc, char* argv[])
 		m <<= msg.c_str();
 		ch->basic_publish("", qname, m);
 
-		print("\"{}\" published on queue {}\n", msg, qname);
+		println("\"{}\" published on queue \"{}\"", msg, qname);
 
 	} catch (CORBA::Exception& e) {
-		print(stderr, "CORBA exception: {}\n", fmt::streamed(e));
+		print(stderr, "CORBA exception: {}\n", streamed(e));
 		return 1;
 	}
 }

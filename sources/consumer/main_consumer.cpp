@@ -1,4 +1,5 @@
 #include <iostream>
+#include <print>
 #include <string>
 #include <span>
 #include "CMQ.h"
@@ -10,14 +11,17 @@ using namespace std;
 using namespace colibry;
 using namespace CMQ;
 
+template<typename T>
+string streamed(const T& t) { std::ostringstream ss; ss << t; return ss.str(); }
+
 void handler(CMQ::Channel_ptr ch, const string& msg)
 {
-	cout << "  MSG = \"" << msg << "\"" << endl;
+	println("  MSG = \"{}\"", msg);
 }
 
 int main(int argc, char* argv[])
 {
-	cout << "CMQ Consumer" << endl;
+	println("CMQ Consumer");
 
 	try {
 
@@ -25,7 +29,7 @@ int main(int argc, char* argv[])
 
 		span args(argv, argc);
 		if (args.size() < 2) {
-			cerr << "USAGE: " << args[0] << " <queue>" << endl;
+			println(stderr,"USAGE: {} <queue>", args[1]);
 			return 1;
 		}
 		const char* qname = args[1];
@@ -39,13 +43,13 @@ int main(int argc, char* argv[])
 		Callback cb{om, handler};
 		channel->basic_consume(cb, qname);
 
-		cout << "* Type ENTER to quit" << endl;
+		println("* Type ENTER to quit");
 		cin.get();
 
 		om.shutdown();
-		cout << "* Terminating" << endl;
+		println("* Terminating");
 	} catch (CORBA::Exception& e) {
-		cerr << "CORBA exception: " << e << endl;
+		println(stderr,"CORBA exception: {}", streamed(e));
 		return 1;
 	}
 }

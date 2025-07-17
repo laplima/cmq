@@ -1,5 +1,5 @@
 #include "CallbackAgentI.h"
-#include <iostream>
+#include <print>
 #include <signal.h>
 #include <mutex>
 
@@ -45,6 +45,6 @@ void CallbackAgent_i::callback (CMQ::Channel_ptr ch, const Message_t& msg)
 	if (msg >>= s)
 		s_handler(ch, s);
 	else
-		cerr << "Could not extract message" << endl;
+		println(stderr,"Could not extract message");
 }
 
