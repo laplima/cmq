@@ -1,7 +1,7 @@
 # ACETAO CMake
-# (C) 2023 Luiz Lima Jr. All rights reserved.
+# (C) 2023-26 Luiz Lima Jr. All rights reserved.
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.30)
 
 project(cmq)
 
@@ -18,8 +18,7 @@ set(SUBPROJECTS
 	consumer
 	publisher)
 
-# pkg-config
-# find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
 
 # Generate ${mylibs}
 
@@ -48,8 +47,11 @@ endforeach(lib_)
 
 # IDL
 
+# IDL ------------------------------------------
+
 set(IDL_DIR "${PROJECT_SOURCE_DIR}/${IDL_DIR}")
-set(STUBS_DIR "${CMAKE_CURRENT_BINARY_DIR}/stubs")		# stubs in the build dir
+# keep stubs in the build dir
+set(STUBS_DIR "${CMAKE_CURRENT_BINARY_DIR}/stubs")
 file(MAKE_DIRECTORY "${STUBS_DIR}")
 
 set(IDL_IMPL)
@@ -58,18 +60,38 @@ set(SKELETONS)
 set(STUBS)
 foreach(idl ${IDL})
 	get_filename_component(idl ${idl} NAME_WE)
-	set(SKELETONS ${SKELETONS}
+	list(APPEND SKELETONS
 		${STUBS_DIR}/${idl}S.cpp
 		${STUBS_DIR}/${idl}C.cpp)
-	set(STUBS ${STUBS}
+	list(APPEND STUBS
 		${STUBS_DIR}/${idl}C.cpp)
-	set(IDL_OUTPUT ${IDL_OUTPUT}
+	list(APPEND IDL_OUTPUT
 		${STUBS_DIR}/${idl}C.h
 		${STUBS_DIR}/${idl}C.inl
 		${STUBS_DIR}/${idl}S.h)
-	set(IDL_IMPL ${IDL_IMPL} ${idl}I.cpp)
+	list(APPEND IDL_IMPL ${idl}I.cpp)
 endforeach(idl)
-set(IDL_OUTPUT ${IDL_OUTPUT} ${SKELETONS})
+list(APPEND IDL_OUTPUT ${SKELETONS})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+# tao_idl custom command
+
+set(idls_)
+foreach(idl ${IDL})
+	list(APPEND idls_ ${IDL_DIR}/${idl})
+endforeach(idl)
+
+add_custom_command(
+	OUTPUT ${IDL_OUTPUT}
+	DEPENDS ${idls_}
+	COMMAND tao_idl
+	ARGS ${idls_} -o "${STUBS_DIR}"
+	COMMENT "Generating stubs + skeletons"
+	WORKING_DIRECTORY ${IDL_DIR}
+	VERBATIM)
+
+add_custom_target(${CMAKE_PROJECT_NAME}_stubs DEPENDS ${IDL_OUTPUT})
 
 # INCLUDES
 
@@ -90,8 +112,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		include_directories("/opt/local/include")
 endif()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-set(MYMODULES_DIR "${PROJECT_SOURCE_DIR}/cmake")
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+# set(MYMODULES_DIR "${PROJECT_SOURCE_DIR}/cmake")
 
 # Subprojects
 foreach(proj ${SUBPROJECTS})

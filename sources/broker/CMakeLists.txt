@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.30)
 
 project(broker)
 
@@ -9,8 +9,9 @@ set(sources
 	Queue.cpp
 	main_server.cpp)
 
-include("${MYMODULES_DIR}/taoidl.cmake")
-
-add_executable(${PROJECT_NAME} ${sources})
+add_executable(${PROJECT_NAME})
+add_dependencies(${PROJECT_NAME} ${CMAKE_PROJECT_NAME}_stubs)
+target_sources(${PROJECT_NAME} PRIVATE ${sources})
 target_compile_options(${PROJECT_NAME} PUBLIC)
-target_link_libraries(${PROJECT_NAME} ${mylibs})
+target_link_libraries(${PROJECT_NAME}
+	${mylibs} spdlog::spdlog_header_only)
